@@ -1,22 +1,77 @@
 #include "DraggableListBox.h"
 
-DraggableListBoxItemData::~DraggableListBoxItemData() {};
 
-void DraggableListBoxItem::paint(Graphics& g)
+//==============================================================================
+
+
+void DraggableListBox::itemDragMove(const SourceDetails& dragSourceDetails)
 {
-    modelData.paintContents(rowNum, g, getLocalBounds());
+    int mouseOverIdx = getRowContainingPosition(dragSourceDetails.localPosition.x,
+        dragSourceDetails.localPosition.y);
+    if (mouseOverIdx == -1) { return; } // failed finding row
 
-    if (insertAfter)
+    // user is dragging source row over the source row
+    // do nothing...
+    if (mouseOverIdx == modelData.dragRowIdx)
     {
-        g.setColour(Colours::red);
-        g.fillRect(0, getHeight() - 3, getWidth(), 3);
+        return;
     }
-    else if (insertBefore)
-    {
-        g.setColour(Colours::red);
-        g.fillRect(0, 0, getWidth(), 3);
-    }
+
+    // user is dragging source row over another row.
+    modelData.swapRows(modelData.dragRowIdx, mouseOverIdx);
+    // save the new row index the user is dragging
+    modelData.dragRowIdx = mouseOverIdx;
+    // update information in rows
+    updateContent();
+    // ListBox must be repainted, or else it will display old clipped images of
+    // the old rows. This would look like GUI bug to the user otherwise.
+    repaint();
 }
+
+void DraggableListBox::itemDragEnter(const SourceDetails& dragSourceDetails)
+{
+    modelData.draggingOutsideContainer = false;
+}
+void DraggableListBox::itemDragExit(const SourceDetails& dragSourceDetails)
+{
+    modelData.draggingOutsideContainer = true;
+}
+
+void DraggableListBox::dragOperationEnded(const DropTarget::SourceDetails& dragSourceDetails)
+{
+    if (modelData.draggingOutsideContainer)
+    {
+        modelData.deleteRow(modelData.dragRowIdx);
+    }
+
+    modelData.dragRowIdx = -1;
+    updateContent();
+    repaint();
+}
+
+
+//==============================================================================
+
+
+Component* DraggableListBoxModel::refreshComponentForRow(int rowNumber,
+    bool /*isRowSelected*/,
+    Component* existingComponentToUpdate)
+{
+    std::unique_ptr<DraggableListBoxItem> item(dynamic_cast<DraggableListBoxItem*>(existingComponentToUpdate));
+
+    if (isPositiveAndBelow(rowNumber, modelData.size()))
+    {
+        if (item == nullptr)
+            item = std::make_unique<DraggableListBoxItem>(modelData, rowNumber);
+        else
+            item->rowIdx = rowNumber;
+    }
+    return item.release();
+}
+
+
+//==============================================================================
+
 
 void DraggableListBoxItem::mouseEnter(const MouseEvent&)
 {
@@ -29,71 +84,16 @@ void DraggableListBoxItem::mouseExit(const MouseEvent&)
     setMouseCursor(savedCursor);
 }
 
-void DraggableListBoxItem::mouseDrag(const MouseEvent&)
+void DraggableListBoxItem::mouseDrag(const MouseEvent& e)
 {
-    if (DragAndDropContainer* container = DragAndDropContainer::findParentDragContainerFor(this))
+    if (modelData.dragRowIdx == rowIdx) { return; }
+    if (DragContainer* container = DragContainer::findParentDragContainerFor(this))
     {
-        container->startDragging("DraggableListBoxItem", this);
+        if (!container->isDragAndDropActive())
+        {
+            juce::ScaledImage scaledImg (createComponentSnapshot(getLocalBounds()));
+            container->startDragging(rowIdx, this, scaledImg);
+            modelData.dragRowIdx = rowIdx;
+        }
     }
-}
-
-void DraggableListBoxItem::updateInsertLines(const SourceDetails &dragSourceDetails)
-{
-    if (dragSourceDetails.localPosition.y < getHeight() / 2)
-    {
-        insertBefore = true;
-        insertAfter = false;
-    }
-    else
-    {
-        insertAfter = true;
-        insertBefore = false;
-    }
-    repaint();
-}
-
-void DraggableListBoxItem::hideInsertLines()
-{
-    insertBefore = false;
-    insertAfter = false;
-}
-
-void DraggableListBoxItem::itemDragEnter(const SourceDetails& dragSourceDetails)
-{
-    updateInsertLines(dragSourceDetails);
-}
-
-void DraggableListBoxItem::itemDragMove(const SourceDetails& dragSourceDetails)
-{
-    updateInsertLines(dragSourceDetails);
-}
-
-void DraggableListBoxItem::itemDragExit(const SourceDetails& /*dragSourceDetails*/)
-{
-    hideInsertLines();
-}
-
-void DraggableListBoxItem::itemDropped(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails)
-{
-    if (DraggableListBoxItem* item = dynamic_cast<DraggableListBoxItem*>(dragSourceDetails.sourceComponent.get()))
-    {
-        if (dragSourceDetails.localPosition.y < getHeight() / 2)
-            modelData.moveBefore(item->rowNum, rowNum);
-        else
-            modelData.moveAfter(item->rowNum, rowNum);
-        listBox.updateContent();
-    }
-    hideInsertLines();
-}
-
-Component* DraggableListBoxModel::refreshComponentForRow(int rowNumber,
-                                                         bool /*isRowSelected*/,
-                                                         Component *existingComponentToUpdate)
-{
-    std::unique_ptr<DraggableListBoxItem> item(dynamic_cast<DraggableListBoxItem*>(existingComponentToUpdate));
-    if (isPositiveAndBelow(rowNumber, modelData.getNumItems()))
-    {
-        item = std::make_unique<DraggableListBoxItem>(listBox, modelData, rowNumber);
-    }
-    return item.release();
 }

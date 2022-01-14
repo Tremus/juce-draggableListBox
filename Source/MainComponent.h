@@ -15,8 +15,8 @@ private:
     TextButton addBtn;
 
     MyListBoxItemData itemData;
-    MyListBoxModel listBoxModel;
-    DraggableListBox listBox;
+    DraggableListBoxModel listBoxModel;
+    MyListBox listBox;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

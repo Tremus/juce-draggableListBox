@@ -1,95 +1,67 @@
 #pragma once
 #include "DraggableListBox.h"
 
-// Application-specific data container
-struct MyListBoxItemData : public DraggableListBoxItemData
+
+//==============================================================================
+
+class MyListBoxItemData : public DraggableListBoxItemData
 {
-    OwnedArray<String> modelData;
+public:
+    MyListBoxItemData() {}
+    ~MyListBoxItemData() {};
 
-    int getNumItems() override
-    {
-        return int(modelData.size());
-    }
+    int size() override { return rowIds.size(); }
+    void swapRows(int sourceRowidx, int targetRowIdx) override { rowIds.swap(sourceRowidx, targetRowIdx); }
 
-    void deleteItem(int indexOfItemToDelete) override
+    void paintRow(DraggableListBoxItem* item, int rowNumber, Graphics& g, Rectangle<int> bounds) override
     {
-        modelData.remove(indexOfItemToDelete);
-    }
+        // If row is being dragged, paint opaque image
+        if (dragRowIdx == rowNumber)
+        {
+            g.fillAll(juce::Colours::transparentBlack);
+            return;
+        }
 
-    void addItemAtEnd() override
-    {
-        modelData.add(new String("Yahoo"));
-    }
-
-    void paintContents(int rowNum, Graphics& g, Rectangle<int> bounds) override
-    {
         g.fillAll(Colours::lightgrey);
         g.setColour(Colours::black);
         g.drawRect(bounds);
-        g.drawText(*modelData[rowNum], bounds, Justification::centred);
+        g.drawText("Item: " + juce::String(rowIds[rowNumber]), bounds, Justification::centred);
     }
 
-    void moveBefore(int indexOfItemToMove, int indexOfItemToPlaceBefore) override
-    {
-        DBG("Move item " + String(indexOfItemToMove) + " before item " + String(indexOfItemToPlaceBefore));
-        if (indexOfItemToMove <= indexOfItemToPlaceBefore)
-            modelData.move(indexOfItemToMove, indexOfItemToPlaceBefore - 1);
-        else
-            modelData.move(indexOfItemToMove, indexOfItemToPlaceBefore);
-        printItemsInOrder();
-    }
-
-    void moveAfter(int indexOfItemToMove, int indexOfItemToPlaceAfter) override
-    {
-        DBG("Move item " + String(indexOfItemToMove) + " after item " + String(indexOfItemToPlaceAfter));
-        if (indexOfItemToMove <= indexOfItemToPlaceAfter)
-            modelData.move(indexOfItemToMove, indexOfItemToPlaceAfter);
-        else
-            modelData.move(indexOfItemToMove, indexOfItemToPlaceAfter + 1);
-        printItemsInOrder();
-    }
+    void deleteRow(int idx) override { rowIds.remove(idx); };
+    void addItemAtEnd() { rowIds.add(idCounter); idCounter++; };
 
     // Not required, just something I'm adding for confirmation of correct order after DnD.
     // This is an example of an operation on the entire list.
+    /*
     void printItemsInOrder()
     {
-        String msg = "\nitems: ";
-        for (auto item : modelData) msg << *item << " ";
+        String msg = "items: ";
+        for (int i = 0; i < rowIds.size(); i++)
+            msg << rowIds.getUnchecked(i) << " ";
         DBG(msg);
     }
+    */
 
-    // This is an example of an operation on a single list item.
-    void doItemAction(int itemIndex)
-    {
-        DBG(*modelData[itemIndex]);
-    }
-};
-
-// Custom list-item Component (which includes item-delete button)
-class MyListComponent : public DraggableListBoxItem
-{
-public:
-    MyListComponent(DraggableListBox& lb, MyListBoxItemData& data, int rn);
-    ~MyListComponent();
-
-    void paint(Graphics&) override;
-    void resized() override;
-
-protected:
-    Rectangle<int> dataArea;
-    TextButton actionBtn, deleteBtn;
+    juce::Array<int> rowIds;
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MyListComponent)
+    int idCounter = 0;
 };
 
-// Customized DraggableListBoxModel overrides refreshComponentForRow() to ensure that every
-// list-item Component is a MyListComponent.
-class MyListBoxModel : public DraggableListBoxModel
+
+//==============================================================================
+
+
+class MyListBox : public DraggableListBox
 {
 public:
-    MyListBoxModel(DraggableListBox& lb, DraggableListBoxItemData& md)
-        : DraggableListBoxModel(lb, md) {}
+    MyListBox(MyListBoxItemData& data) : DraggableListBox(data) {}
 
-    Component* refreshComponentForRow(int, bool, Component*) override;
+    void dragImageMove(juce::Point<int>& defaultTopLeft) override
+    {
+        defaultTopLeft.x = 0;
+        if (defaultTopLeft.y < 0)
+            defaultTopLeft.y = 0;
+    }
 };

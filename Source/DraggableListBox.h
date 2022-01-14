@@ -1,80 +1,90 @@
 #pragma once
 #include "JuceHeader.h"
+#include "DragContainer.h"
 
-// Your item-data container must inherit from this, and override at least the first
-// four member functions.
-struct DraggableListBoxItemData
-{
-    virtual ~DraggableListBoxItemData() = 0;
-    
-    virtual int getNumItems() = 0;
-    virtual void paintContents(int, Graphics&, Rectangle<int>) = 0;
+class DraggableListBoxItem;
 
-    virtual void moveBefore(int indexOfItemToMove, int indexOfItemToPlaceBefore) = 0;
-    virtual void moveAfter(int indexOfItemToMove, int indexOfItemToPlaceAfter) = 0;
+//==============================================================================
 
-    // If you need a dynamic list, override these functions as well.
-    virtual void deleteItem(int /*indexOfItemToDelete*/) {};
-    virtual void addItemAtEnd() {};
-};
-
-// DraggableListBox is basically just a ListBox, that inherits from DragAndDropContainer.
-// Declare your list box using this type.
-class DraggableListBox : public ListBox, public DragAndDropContainer
-{
-};
-
-// Everything below this point should be generic.
-class DraggableListBoxItem : public Component, public DragAndDropTarget
+// Base class for holding all relevant row data
+class DraggableListBoxItemData
 {
 public:
-    DraggableListBoxItem(DraggableListBox& lb, DraggableListBoxItemData& data, int rn)
-        : rowNum(rn), modelData(data), listBox(lb)  {}
+    virtual ~DraggableListBoxItemData() {};
+    virtual void paintRow(DraggableListBoxItem*, int, juce::Graphics&, juce::Rectangle<int>) = 0;
+    virtual int size() = 0;
+    virtual void swapRows(int sourceRowidx, int targetRowIdx)=0;
+    virtual void deleteRow(int idx) {};
 
-    // Component
-    void paint(Graphics& g) override;
-    void mouseEnter(const MouseEvent&) override;
-    void mouseExit(const MouseEvent&) override;
-    void mouseDrag(const MouseEvent&) override;
+    int dragRowIdx = -1;
+    bool draggingOutsideContainer = false;
+};
 
-    // DragAndDropTarget
+
+//==============================================================================
+
+
+class DraggableListBox
+    : public juce::ListBox
+    , public DragContainer
+    , public DropTarget
+{
+public:
+    DraggableListBox(DraggableListBoxItemData& md): modelData(md) {}
+
+    // DropTarget
     bool isInterestedInDragSource(const SourceDetails&) override { return true; }
-    void itemDragEnter(const SourceDetails&) override;
+    void itemDragEnter(const SourceDetails& dragSourceDetails) override;
+    void itemDragExit(const SourceDetails& dragSourceDetails) override;
     void itemDragMove(const SourceDetails&) override;
-    void itemDragExit(const SourceDetails&) override;
-    void itemDropped(const SourceDetails&) override;
-    bool shouldDrawDragImageWhenOver() override { return true; }
+    void itemDropped(const SourceDetails& dragSourceDetails) override {}
 
-    // DraggableListBoxItem
 protected:
-    void updateInsertLines(const SourceDetails &dragSourceDetails);
-    void hideInsertLines();
+    void dragOperationEnded(const DropTarget::SourceDetails& dragSourceDetails) override;
 
-    int rowNum;
     DraggableListBoxItemData& modelData;
-    DraggableListBox& listBox;
-
-    MouseCursor savedCursor;
-    bool insertAfter = false;
-    bool insertBefore = false;
 };
 
-class DraggableListBoxModel : public ListBoxModel
+
+//==============================================================================
+
+
+class DraggableListBoxModel : public juce::ListBoxModel
 {
 public:
-    DraggableListBoxModel(DraggableListBox& lb, DraggableListBoxItemData& md)
-        : listBox(lb), modelData(md) {}
-
-    int getNumRows() override { return modelData.getNumItems(); }
-    void paintListBoxItem(int, Graphics &, int, int, bool) override {}
-
+    DraggableListBoxModel(DraggableListBoxItemData& md): modelData(md) {}
+    int getNumRows() override { return modelData.size(); }
+    void paintListBoxItem(int, Graphics&, int, int, bool) override {}
     Component* refreshComponentForRow(int, bool, Component*) override;
 
 protected:
-    // Draggable model has a reference to its owner ListBox, so it can tell it to update after DnD.
-    DraggableListBox &listBox;
-
-    // It also has a reference to the model data, which it uses to get the current items count,
-    // and which it passes to the DraggableListBoxItem objects it creates/updates.
     DraggableListBoxItemData& modelData;
+};
+
+
+//==============================================================================
+
+
+// Row component class that knows how to drag itself.
+class DraggableListBoxItem : public juce::Component
+{
+public:
+    DraggableListBoxItem(DraggableListBoxItemData& md, int rn)
+        : rowIdx(rn)
+        , modelData(md) {}
+
+    // It's recommended that you use the paint method in DraggableListBoxItemData
+    // as that class should have all your data for all rows
+    void paint(juce::Graphics& g) override
+    {
+        modelData.paintRow(this, rowIdx, g, getLocalBounds());
+    }
+    void mouseEnter(const juce::MouseEvent&) override;
+    void mouseExit(const juce::MouseEvent&) override;
+    void mouseDrag(const juce::MouseEvent&) override;
+
+    int rowIdx;
+protected:
+    DraggableListBoxItemData& modelData;
+    juce::MouseCursor savedCursor;
 };

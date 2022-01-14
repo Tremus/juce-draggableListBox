@@ -1,16 +1,17 @@
 #include "MainComponent.h"
 
 MainContentComponent::MainContentComponent()
-    : listBoxModel(listBox, itemData)
+    : listBoxModel(itemData)
+    , listBox(itemData)
 {
-    itemData.modelData.add(new String("Item 1"));
-    itemData.modelData.add(new String("Item 2"));
-    itemData.modelData.add(new String("Item 3"));
+    itemData.addItemAtEnd();
+    itemData.addItemAtEnd();
+    itemData.addItemAtEnd();
 
     addBtn.setButtonText("Add Item...");
     addBtn.onClick = [this]()
     {
-        itemData.modelData.add(new String("Item " + String(1 + itemData.getNumItems())));
+        itemData.addItemAtEnd();
         listBox.updateContent();
     };
     addAndMakeVisible(addBtn);
