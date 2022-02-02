@@ -12,17 +12,18 @@
 
 
 //==============================================================================
-class DragContainer::DragImageComponent : public Component,
-    private Timer
+class DragContainer::DragImageComponent
+    : public juce::Component
+    , private juce::Timer
 {
 public:
-    DragImageComponent(const ScaledImage& im,
-        const var& desc,
-        Component* const sourceComponent,
-        const MouseInputSource* draggingSource,
-        DragContainer& ddc,
-        Point<int> offset)
-        : sourceDetails(desc, sourceComponent, Point<int>()),
+    DragImageComponent(const juce::ScaledImage& im,
+                       const juce::var& desc,
+                       juce::Component* const sourceComponent,
+                       const juce::MouseInputSource* draggingSource,
+                       DragContainer& ddc,
+                       juce::Point<int> offset)
+        : sourceDetails(desc, sourceComponent, juce::Point<int>()),
         image(im),
         owner(ddc),
         mouseDragSource(draggingSource->getComponentUnderMouse()),
@@ -59,16 +60,16 @@ public:
         owner.dragOperationEnded(sourceDetails);
     }
 
-    void paint(Graphics& g) override
+    void paint(juce::Graphics& g) override
     {
         if (isOpaque())
-            g.fillAll(Colours::white);
+            g.fillAll(juce::Colours::white);
 
         g.setOpacity(1.0f);
         g.drawImage(image.getImage(), getLocalBounds().toFloat());
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp(const juce::MouseEvent& e) override
     {
         if (e.originalComponent != this && isOriginalInputSource(e.source))
         {
@@ -101,19 +102,19 @@ public:
         }
     }
 
-    void mouseDrag(const MouseEvent& e) override
+    void mouseDrag(const juce::MouseEvent& e) override
     {
         if (e.originalComponent != this && isOriginalInputSource(e.source))
             updateLocation(true, e.getScreenPosition());
     }
 
-    void updateLocation(const bool canDoExternalDrag, Point<int> screenPos)
+    void updateLocation(const bool canDoExternalDrag, juce::Point<int> screenPos)
     {
         DropTarget::SourceDetails& details = sourceDetails;
 
         setNewScreenPos(screenPos);
 
-        Component* newTargetComp;
+        juce::Component* newTargetComp;
         auto* newTarget = findTarget(screenPos, details.localPosition, newTargetComp);
 
         setVisible(newTarget == nullptr || newTarget->shouldDrawDragImageWhenOver());
@@ -135,7 +136,7 @@ public:
 
         if (canDoExternalDrag)
         {
-            auto now = Time::getCurrentTime();
+            auto now = juce::Time::getCurrentTime();
 
             if (getCurrentlyOver() != nullptr)
                 lastTimeOverTarget = now;
@@ -144,7 +145,7 @@ public:
         forceMouseCursorUpdate();
     }
 
-    void updateImage(const ScaledImage& newImage)
+    void updateImage(const juce::ScaledImage& newImage)
     {
         image = newImage;
         updateSize();
@@ -161,7 +162,7 @@ public:
         }
         else
         {
-            for (auto& s : Desktop::getInstance().getMouseSources())
+            for (auto& s : juce::Desktop::getInstance().getMouseSources())
             {
                 if (isOriginalInputSource(s) && !s.isDragging())
                 {
@@ -175,9 +176,9 @@ public:
         }
     }
 
-    bool keyPressed(const KeyPress& key) override
+    bool keyPressed(const juce::KeyPress& key) override
     {
-        if (key == KeyPress::escapeKey)
+        if (key == juce::KeyPress::escapeKey)
         {
             dismissWithAnimation(true);
             deleteSelf();
@@ -198,14 +199,14 @@ public:
     DropTarget::SourceDetails sourceDetails;
 
 private:
-    ScaledImage image;
+    juce::ScaledImage image;
     DragContainer& owner;
-    WeakReference<Component> mouseDragSource, currentlyOverComp;
-    const Point<int> imageOffset;
+    juce::WeakReference<juce::Component> mouseDragSource, currentlyOverComp;
+    const juce::Point<int> imageOffset;
     bool hasCheckedForExternalDrag = false;
-    Time lastTimeOverTarget;
+    juce::Time lastTimeOverTarget;
     int originalInputSourceIndex;
-    MouseInputSource::InputSourceType originalInputSourceType;
+    juce::MouseInputSource::InputSourceType originalInputSourceType;
 
     void updateSize()
     {
@@ -215,7 +216,7 @@ private:
 
     void forceMouseCursorUpdate()
     {
-        Desktop::getInstance().getMainMouseSource().forceMouseCursorUpdate();
+        juce::Desktop::getInstance().getMainMouseSource().forceMouseCursorUpdate();
     }
 
     DropTarget* getCurrentlyOver() const noexcept
@@ -223,9 +224,9 @@ private:
         return dynamic_cast<DropTarget*> (currentlyOverComp.get());
     }
 
-    static Component* findDesktopComponentBelow(Point<int> screenPos)
+    static juce::Component* findDesktopComponentBelow(juce::Point<int> screenPos)
     {
-        auto& desktop = Desktop::getInstance();
+        auto& desktop = juce::Desktop::getInstance();
 
         for (auto i = desktop.getNumComponents(); --i >= 0;)
         {
@@ -244,12 +245,12 @@ private:
         return nullptr;
     }
 
-    Point<int> transformOffsetCoordinates(const Component* const sourceComponent, Point<int> offsetInSource) const
+    juce::Point<int> transformOffsetCoordinates(const juce::Component* const sourceComponent, juce::Point<int> offsetInSource) const
     {
-        return getLocalPoint(sourceComponent, offsetInSource) - getLocalPoint(sourceComponent, Point<int>());
+        return getLocalPoint(sourceComponent, offsetInSource) - getLocalPoint(sourceComponent, juce::Point<int>());
     }
 
-    DropTarget* findTarget(Point<int> screenPos, Point<int>& relativePos,
+    DropTarget* findTarget(juce::Point<int> screenPos, juce::Point<int>& relativePos,
         Component*& resultComponent) const
     {
         auto* hit = getParentComponent();
@@ -282,7 +283,7 @@ private:
         return nullptr;
     }
 
-    void setNewScreenPos(Point<int> screenPos)
+    void setNewScreenPos(juce::Point<int> screenPos)
     {
         auto newPos = screenPos - imageOffset;
 
@@ -312,7 +313,7 @@ private:
     void dismissWithAnimation(const bool shouldSnapBack)
     {
         setVisible(true);
-        auto& animator = Desktop::getInstance().getAnimator();
+        auto& animator = juce::Desktop::getInstance().getAnimator();
 
         if (shouldSnapBack && sourceDetails.sourceComponent != nullptr)
         {
@@ -330,7 +331,7 @@ private:
         }
     }
 
-    bool isOriginalInputSource(const MouseInputSource& sourceToCheck)
+    bool isOriginalInputSource(const juce::MouseInputSource& sourceToCheck)
     {
         return (sourceToCheck.getType() == originalInputSourceType
             && sourceToCheck.getIndex() == originalInputSourceIndex);
@@ -345,12 +346,12 @@ DragContainer::DragContainer() = default;
 
 DragContainer::~DragContainer() = default;
 
-void DragContainer::startDragging(const var& sourceDescription,
-    Component* sourceComponent,
-    const ScaledImage& dragImage,
-    const bool allowDraggingToExternalWindows,
-    const Point<int>* imageOffsetFromMouse,
-    const MouseInputSource* inputSourceCausingDrag)
+void DragContainer::startDragging(const juce::var& sourceDescription,
+                                  juce::Component* sourceComponent,
+                                  const juce::ScaledImage& dragImage,
+                                  const bool allowDraggingToExternalWindows,
+                                  const juce::Point<int>* imageOffsetFromMouse,
+                                  const juce::MouseInputSource* inputSourceCausingDrag)
 {
     if (isAlreadyDragging(sourceComponent))
         return;
@@ -367,8 +368,8 @@ void DragContainer::startDragging(const var& sourceDescription,
 
     struct ImageAndOffset
     {
-        ScaledImage image;
-        Point<double> offset;
+        juce::ScaledImage image;
+        juce::Point<double> offset;
     };
 
     const auto imageToUse = [&]() -> ImageAndOffset
@@ -379,33 +380,33 @@ void DragContainer::startDragging(const var& sourceDescription,
 
         const auto scaleFactor = 2.0;
         auto image = sourceComponent->createComponentSnapshot(sourceComponent->getLocalBounds(), true, (float)scaleFactor)
-            .convertedToFormat(Image::ARGB);
+            .convertedToFormat(juce::Image::ARGB);
         image.multiplyAllAlphas(0.6f);
 
         const auto relPos = sourceComponent->getLocalPoint(nullptr, lastMouseDown).toDouble();
         const auto clipped = (image.getBounds().toDouble() / scaleFactor).getConstrainedPoint(relPos);
 
-        Image fade(Image::SingleChannel, image.getWidth(), image.getHeight(), true);
-        Graphics fadeContext(fade);
+        juce::Image fade(juce::Image::SingleChannel, image.getWidth(), image.getHeight(), true);
+        juce::Graphics fadeContext(fade);
 
-        ColourGradient gradient;
+        juce::ColourGradient gradient;
         gradient.isRadial = true;
         gradient.point1 = clipped.toFloat() * scaleFactor;
-        gradient.point2 = gradient.point1 + Point<float>(0.0f, scaleFactor * 400.0f);
-        gradient.addColour(0.0, Colours::white);
-        gradient.addColour(0.375, Colours::white);
-        gradient.addColour(1.0, Colours::transparentWhite);
+        gradient.point2 = gradient.point1 + juce::Point<float>(0.0f, scaleFactor * 400.0f);
+        gradient.addColour(0.0, juce::Colours::white);
+        gradient.addColour(0.375, juce::Colours::white);
+        gradient.addColour(1.0, juce::Colours::transparentWhite);
 
         fadeContext.setGradientFill(gradient);
         fadeContext.fillAll();
 
-        Image composite(Image::ARGB, image.getWidth(), image.getHeight(), true);
-        Graphics compositeContext(composite);
+        juce::Image composite(juce::Image::ARGB, image.getWidth(), image.getHeight(), true);
+        juce::Graphics compositeContext(composite);
 
         compositeContext.reduceClipRegion(fade, {});
         compositeContext.drawImageAt(image, 0, 0);
 
-        return { ScaledImage(composite, scaleFactor), clipped };
+        return { juce::ScaledImage(composite, scaleFactor), clipped };
     }();
 
     auto* dragImageComponent = dragImageComponents.add(new DragImageComponent(imageToUse.image, sourceDescription, sourceComponent,
@@ -413,16 +414,16 @@ void DragContainer::startDragging(const var& sourceDescription,
 
     if (allowDraggingToExternalWindows)
     {
-        if (!Desktop::canUseSemiTransparentWindows())
+        if (!juce::Desktop::canUseSemiTransparentWindows())
             dragImageComponent->setOpaque(true);
 
-        dragImageComponent->addToDesktop(ComponentPeer::windowIgnoresMouseClicks
-            | ComponentPeer::windowIsTemporary
-            | ComponentPeer::windowIgnoresKeyPresses);
+        dragImageComponent->addToDesktop(juce::ComponentPeer::windowIgnoresMouseClicks
+            | juce::ComponentPeer::windowIsTemporary
+            | juce::ComponentPeer::windowIgnoresKeyPresses);
     }
     else
     {
-        if (auto* thisComp = dynamic_cast<Component*> (this))
+        if (auto* thisComp = dynamic_cast<juce::Component*> (this))
         {
             thisComp->addChildComponent(dragImageComponent);
         }
@@ -451,14 +452,14 @@ bool DragContainer::isDragAndDropActive() const
     return dragImageComponents.size() > 0;
 }
 
-var DragContainer::getCurrentDragDescription() const
+juce::var DragContainer::getCurrentDragDescription() const
 {
     // If you are performing drag and drop in a multi-touch environment then
     // you should use the getDragDescriptionForIndex() method instead!
     jassert(dragImageComponents.size() < 2);
 
     return dragImageComponents.size() != 0 ? dragImageComponents[0]->sourceDetails.description
-        : var();
+        : juce::var();
 }
 
 /*
@@ -472,7 +473,7 @@ void DragContainer::setCurrentDragImage(const ScaledImage& newImage)
 }
 */
 
-DragContainer* DragContainer::findParentDragContainerFor(Component* c)
+DragContainer* DragContainer::findParentDragContainerFor(juce::Component* c)
 {
     return c != nullptr ? c->findParentComponentOfClass<DragContainer>() : nullptr;
 }
@@ -480,15 +481,15 @@ DragContainer* DragContainer::findParentDragContainerFor(Component* c)
 void DragContainer::dragOperationStarted(const DropTarget::SourceDetails&) {}
 void DragContainer::dragOperationEnded(const DropTarget::SourceDetails&) {}
 
-const MouseInputSource* DragContainer::getMouseInputSourceForDrag(Component* sourceComponent,
-    const MouseInputSource* inputSourceCausingDrag)
+const juce::MouseInputSource* DragContainer::getMouseInputSourceForDrag(juce::Component* sourceComponent,
+    const juce::MouseInputSource* inputSourceCausingDrag)
 {
     if (inputSourceCausingDrag == nullptr)
     {
         auto minDistance = std::numeric_limits<float>::max();
-        auto& desktop = Desktop::getInstance();
+        auto& desktop = juce::Desktop::getInstance();
 
-        auto centrePoint = sourceComponent ? sourceComponent->getScreenBounds().getCentre().toFloat() : Point<float>();
+        auto centrePoint = sourceComponent ? sourceComponent->getScreenBounds().getCentre().toFloat() : juce::Point<float>();
         auto numDragging = desktop.getNumDraggingMouseSources();
 
         for (auto i = 0; i < numDragging; ++i)
@@ -512,7 +513,7 @@ const MouseInputSource* DragContainer::getMouseInputSourceForDrag(Component* sou
     return inputSourceCausingDrag;
 }
 
-bool DragContainer::isAlreadyDragging(Component* component) const noexcept
+bool DragContainer::isAlreadyDragging(juce::Component* component) const noexcept
 {
     for (auto* dragImageComp : dragImageComponents)
     {
@@ -524,7 +525,7 @@ bool DragContainer::isAlreadyDragging(Component* component) const noexcept
 }
 
 //==============================================================================
-DropTarget::SourceDetails::SourceDetails(const var& desc, Component* comp, Point<int> pos) noexcept
+DropTarget::SourceDetails::SourceDetails(const juce::var& desc, juce::Component* comp, juce::Point<int> pos) noexcept
     : description(desc),
     sourceComponent(comp),
     localPosition(pos)
@@ -534,5 +535,5 @@ DropTarget::SourceDetails::SourceDetails(const var& desc, Component* comp, Point
 void DropTarget::itemDragEnter(const SourceDetails&) {}
 void DropTarget::itemDragMove(const SourceDetails&) {}
 void DropTarget::itemDragExit(const SourceDetails&) {}
-void DropTarget::dragImageMove(Point<int>&) {}
+void DropTarget::dragImageMove(juce::Point<int>&) {}
 bool DropTarget::shouldDrawDragImageWhenOver() { return true; }

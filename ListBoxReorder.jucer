@@ -2,22 +2,28 @@
 
 <JUCERPROJECT id="kfxwhq" name="ListBoxReorder" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.ListBoxReorder" includeBinaryInAppConfig="1"
-              cppLanguageStandard="latest" jucerFormatVersion="1">
+              cppLanguageStandard="latest" jucerFormatVersion="1" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="rPu9OT" name="ListBoxReorder">
     <GROUP id="{DF261840-DAED-589F-C182-B6C3064BD21B}" name="Source">
       <FILE id="tOJ3Hs" name="DragContainer.cpp" compile="1" resource="0"
             file="Source/DragContainer.cpp"/>
       <FILE id="Yk0hN8" name="DragContainer.h" compile="0" resource="0" file="Source/DragContainer.h"/>
-      <FILE id="m1LIyM" name="MyListComponent.h" compile="0" resource="0"
-            file="Source/MyListComponent.h"/>
       <FILE id="whyzV1" name="DraggableListBox.cpp" compile="1" resource="0"
             file="Source/DraggableListBox.cpp"/>
       <FILE id="vZKFgi" name="DraggableListBox.h" compile="0" resource="0"
             file="Source/DraggableListBox.h"/>
+      <FILE id="rvR8er" name="DraggableTable.cpp" compile="1" resource="0"
+            file="Source/DraggableTable.cpp"/>
+      <FILE id="pCjedZ" name="DraggableTable.h" compile="0" resource="0"
+            file="Source/DraggableTable.h"/>
+      <FILE id="AoQklY" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="BMIWxU" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
       <FILE id="ruCE7o" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="AoQklY" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="m1LIyM" name="MyListComponent.h" compile="0" resource="0"
+            file="Source/MyListComponent.h"/>
+      <FILE id="jyRBDA" name="MyTableComponent.h" compile="0" resource="0"
+            file="Source/MyTableComponent.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

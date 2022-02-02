@@ -1,30 +1,39 @@
 #include "MainComponent.h"
 
 MainContentComponent::MainContentComponent()
-    : listBoxModel(itemData)
-    , listBox(itemData)
+    : table(itemData)
 {
     itemData.addItemAtEnd();
     itemData.addItemAtEnd();
     itemData.addItemAtEnd();
+
+    auto& header = table.getHeader();
+    header.addColumn("Col 1", 1, 100);
+    header.addColumn("Col 2", 2, 100);
+    header.addColumn("Col 3", 3, 100);
+    header.setColumnVisible(1, true);
+    header.setColumnVisible(2, true);
+    header.setColumnVisible(3, true);
+    header.setStretchToFitActive(true);
+
+    table.setModel(&itemData);
+    table.setRowHeight(40);
 
     addBtn.setButtonText("Add Item...");
     addBtn.onClick = [this]()
     {
         itemData.addItemAtEnd();
-        listBox.updateContent();
+        table.updateContent();
     };
     addAndMakeVisible(addBtn);
 
-    listBox.setModel(&listBoxModel);
-    listBox.setRowHeight(40);
-    addAndMakeVisible(listBox);
+    addAndMakeVisible(table);
     setSize (600, 400);
 }
 
-void MainContentComponent::paint (Graphics& g)
+void MainContentComponent::paint (juce::Graphics& g)
 {
-    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
 void MainContentComponent::resized()
@@ -34,5 +43,6 @@ void MainContentComponent::resized()
     addBtn.setBounds(row.removeFromRight(100));
 
     area.removeFromTop(6);
-    listBox.setBounds(area);
+    table.setBounds(area);
+    table.updateContent();
 }

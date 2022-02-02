@@ -54,8 +54,8 @@ class DraggableListBoxModel : public juce::ListBoxModel
 public:
     DraggableListBoxModel(DraggableListBoxItemData& md): modelData(md) {}
     int getNumRows() override { return modelData.size(); }
-    void paintListBoxItem(int, Graphics&, int, int, bool) override {}
-    Component* refreshComponentForRow(int, bool, Component*) override;
+    void paintListBoxItem(int, juce::Graphics&, int, int, bool) override {}
+    juce::Component* refreshComponentForRow(int, bool, juce::Component*) override;
 
 protected:
     DraggableListBoxItemData& modelData;

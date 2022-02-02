@@ -1,22 +1,22 @@
 #pragma once
 #include "JuceHeader.h"
-#include "MyListComponent.h"
+//#include "MyListComponent.h"
+#include "MyTableComponent.h"
 
-class MainContentComponent   : public Component
+class MainContentComponent   : public juce::Component
 {
 public:
     MainContentComponent();
     virtual ~MainContentComponent() = default;
     
-    void paint (Graphics&) override;
+    void paint (juce::Graphics&) override;
     void resized() override;
     
 private:
-    TextButton addBtn;
+    juce::TextButton addBtn;
 
-    MyListBoxItemData itemData;
-    DraggableListBoxModel listBoxModel;
-    MyListBox listBox;
+    MyTableData itemData;
+    MyTable table;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

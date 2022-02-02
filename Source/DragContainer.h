@@ -10,12 +10,12 @@ public:
     class SourceDetails
     {
     public:
-        SourceDetails(const var& description,
-            Component* sourceComponent,
-            Point<int> localPosition) noexcept;
-        var description;
-        WeakReference<Component> sourceComponent;
-        Point<int> localPosition;
+        SourceDetails(const juce::var& description,
+                      juce::Component* sourceComponent,
+                      juce::Point<int> localPosition) noexcept;
+                      juce::var description;
+                      juce::WeakReference<juce::Component> sourceComponent;
+                      juce::Point<int> localPosition;
     };
 
     //==============================================================================
@@ -24,7 +24,7 @@ public:
     virtual void itemDragMove(const SourceDetails& dragSourceDetails);
     virtual void itemDragExit(const SourceDetails& dragSourceDetails);
     virtual void itemDropped(const SourceDetails& dragSourceDetails) = 0;
-    virtual void dragImageMove(Point<int>& defaultTopLeft);
+    virtual void dragImageMove(juce::Point<int>& defaultTopLeft);
     virtual bool shouldDrawDragImageWhenOver();
 };
 
@@ -39,19 +39,19 @@ public:
     virtual ~DragContainer();
 
     //==============================================================================
-    void startDragging(const var& sourceDescription,
-        Component* sourceComponent,
-        const ScaledImage& dragImage = ScaledImage(),
-        bool allowDraggingToOtherJuceWindows = false,
-        const Point<int>* imageOffsetFromMouse = nullptr,
-        const MouseInputSource* inputSourceCausingDrag = nullptr);
+    void startDragging(const juce::var& sourceDescription,
+                       juce::Component* sourceComponent,
+                       const juce::ScaledImage& dragImage = juce::ScaledImage(),
+                       bool allowDraggingToOtherJuceWindows = false,
+                       const juce::Point<int>* imageOffsetFromMouse = nullptr,
+                       const juce::MouseInputSource* inputSourceCausingDrag = nullptr);
 
     bool isDragAndDropActive() const;
-    var getCurrentDragDescription() const;
+    juce::var getCurrentDragDescription() const;
 
-    //void setCurrentDragImage(const ScaledImage& newImage);
+    //void setCurrentDragImage(const juce::ScaledImage& newImage);
 
-    static DragContainer* findParentDragContainerFor(Component* childComponent);
+    static DragContainer* findParentDragContainerFor(juce::Component* childComponent);
     //==============================================================================
 protected:
     virtual void dragOperationStarted(const DropTarget::SourceDetails&);
@@ -60,10 +60,10 @@ protected:
 private:
     //==============================================================================
     class DragImageComponent;
-    OwnedArray<DragImageComponent> dragImageComponents;
+    juce::OwnedArray<DragImageComponent> dragImageComponents;
 
-    const MouseInputSource* getMouseInputSourceForDrag(Component* sourceComponent, const MouseInputSource* inputSourceCausingDrag);
-    bool isAlreadyDragging(Component* sourceComponent) const noexcept;
+    const juce::MouseInputSource* getMouseInputSourceForDrag(juce::Component* sourceComponent, const juce::MouseInputSource* inputSourceCausingDrag);
+    bool isAlreadyDragging(juce::Component* sourceComponent) const noexcept;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DragContainer)
 };

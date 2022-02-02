@@ -3,7 +3,6 @@
 
 //==============================================================================
 
-
 void DraggableListBox::itemDragMove(const SourceDetails& dragSourceDetails)
 {
     int mouseOverIdx = getRowContainingPosition(dragSourceDetails.localPosition.x,
@@ -49,17 +48,15 @@ void DraggableListBox::dragOperationEnded(const DropTarget::SourceDetails& dragS
     repaint();
 }
 
-
 //==============================================================================
 
-
-Component* DraggableListBoxModel::refreshComponentForRow(int rowNumber,
-    bool /*isRowSelected*/,
-    Component* existingComponentToUpdate)
+juce::Component* DraggableListBoxModel::refreshComponentForRow(int rowNumber,
+                                                               bool /*isRowSelected*/,
+                                                               juce::Component* existingComponentToUpdate)
 {
     std::unique_ptr<DraggableListBoxItem> item(dynamic_cast<DraggableListBoxItem*>(existingComponentToUpdate));
 
-    if (isPositiveAndBelow(rowNumber, modelData.size()))
+    if (juce::isPositiveAndBelow(rowNumber, modelData.size()))
     {
         if (item == nullptr)
             item = std::make_unique<DraggableListBoxItem>(modelData, rowNumber);
@@ -69,22 +66,20 @@ Component* DraggableListBoxModel::refreshComponentForRow(int rowNumber,
     return item.release();
 }
 
-
 //==============================================================================
 
-
-void DraggableListBoxItem::mouseEnter(const MouseEvent&)
+void DraggableListBoxItem::mouseEnter(const juce::MouseEvent&)
 {
     savedCursor = getMouseCursor();
-    setMouseCursor(MouseCursor::DraggingHandCursor);
+    setMouseCursor(juce::MouseCursor::DraggingHandCursor);
 }
 
-void DraggableListBoxItem::mouseExit(const MouseEvent&)
+void DraggableListBoxItem::mouseExit(const juce::MouseEvent&)
 {
     setMouseCursor(savedCursor);
 }
 
-void DraggableListBoxItem::mouseDrag(const MouseEvent& e)
+void DraggableListBoxItem::mouseDrag(const juce::MouseEvent& e)
 {
     if (modelData.dragRowIdx == rowIdx) { return; }
     if (DragContainer* container = DragContainer::findParentDragContainerFor(this))
